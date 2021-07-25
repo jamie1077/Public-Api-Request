@@ -1,6 +1,11 @@
 const gallery = document.querySelector('#gallery');
 const body = document.querySelector('body');
 
+let currentCard = 0;
+
+// ------------------------------------------
+//  FETCH FUNCTION
+// ------------------------------------------
 function fetchData(url) {
     return fetch(url)
         .then(checkStatus)
@@ -10,13 +15,17 @@ function fetchData(url) {
 
 fetchData('https://randomuser.me/api/?results=12&nat=us')
     .then(data => {
-        const users = data.results
-        generateProfiles(users)
-        modalMarkup()
-        cardsHandler(users)
+        const users = data.results;
+        generateProfiles(users);
+        generateModal();
+        toggleModal(users);
+        cardsHandler(users);
     });
-     
-//Helper functions
+
+
+// ------------------------------------------
+//  HELPER FUNCTIONS
+// ------------------------------------------   
 function checkStatus(response){
     if(response.ok){
         return Promise.resolve(response);
@@ -43,19 +52,9 @@ function generateProfiles(data){
     gallery.insertAdjacentHTML('beforeend', profiles);
 }
 
-//Function to handle the click on the cards
-function cardsHandler(data) {
-    const cards = document.querySelectorAll('.card');
 
-    for (let i = 0; i < cards.length; i++) {
-        cards[i].addEventListener('click', (e) => {
-            document.querySelector('.modal-container').style.display = 'block';
-            updateModal(data[i]);
-        })
-    }
-}
 //Function for modal markup + modal closes if user clicks outside of modal
-function modalMarkup() {
+function generateModal() {
     const markup =  `
     <div class="modal-container">
             <div class="modal">
@@ -83,30 +82,90 @@ function modalMarkup() {
         modalContainer.style.display = 'none';
         document.querySelector('.modal-info-container').remove();
         }
-    })
+    });
 }
+
 //Function to update modal data
 function updateModal(data) {
-    const regex = /^(\d{4})-(\d{2})-(\d{2})$/;
-    const dob = `${data.dob.date.substring(0,10)}`;
-    const cell = `${data.cell.substring(0,14)}`
-    const cellRegex = /^.(\d{3}).-(\d{3})-(\d{4})$/
+    const dob = new Date(data.dob.date);
+    const [month, day, year] = [dob.getMonth()+1, dob.getDate(), dob.getFullYear()];
+    const modal = document.querySelector('.modal');
+    modal.innerHTML = '';
+   
+    const employeeData = `
+        <div class="modal-info-container">
+            <img class="modal-img" src="${data.picture.large}" alt="${data.name.first} ${data.name.last}">
+            <h3 id="name" class="modal-name cap">${data.name.first} ${data.name.last}</h3>
+            <p class="modal-text">${data.email}</p>
+            <p class="modal-text cap">${data.location.city}</p>
+            <hr>
+            <p class="modal-text">${data.phone}</p>
+            <p class="modal-text">${data.location.state}, ${data.location.city}, ${data.location.country} ${data.location.postcode}</p>
+            <p class="modal-text">Birthday: ${[month]}/${[day]}/${[year]}</p>
+        </div>
+    `;  
     
-    const addData = `
-            <div class="modal-info-container">
-                <img class="modal-img" src="${data.picture.large}" alt="${data.name.first} ${data.name.last}">
-                <h3 id="name" class="modal-name cap">${data.name.first} ${data.name.last}</h3>
-                <p class="modal-text">${data.email}</p>
-                <p class="modal-text cap">${data.location.city}</p>
-                <hr>
-                <p class="modal-text">${cell.replace(cellRegex, `($1) $2-$3`)}</p>
-                <p class="modal-text">${data.location.state}, ${data.location.city}, ${data.location.country} ${data.location.postcode}</p>
-                <p class="modal-text">Birthday: ${dob.replace(regex, `$2/$3/$1`)}</p>
-            </div>
-        `    
-    const modalContainer = document.querySelector('.modal');
-    modalContainer.insertAdjacentHTML('afterbegin', addData);
+    modal.insertAdjacentHTML('afterbegin', employeeData);
 }
+
+function toggleModal(data) {
+    const prevBtn = document.querySelector("#modal-prev");
+    const nextBtn = document.querySelector("#modal-next");
+    let currentIndex = 0;
+   
+    prevBtn.addEventListener("click", (e) => {
+      if (currentIndex === 0) {
+        currentIndex = data.length -1;
+   
+      } else {
+        currentIndex--;
+     
+      }
+      updateModal(data[currentIndex]);
+    });
+
+    nextBtn.addEventListener("click", (e) => {
+        if (currentIndex === 11) {
+            currentIndex = data.length - 1;
+        } else {
+          currentIndex++;
+        }
+        updateModal(data[currentIndex]);
+    });
+
+  }
+
+//Function to handle the click on the cards
+function cardsHandler(data) {
+    const cards = document.querySelectorAll('.card');
+    const nextBtn = document.querySelector('#modal-next');
+    const prevBtn = document.querySelector('#modal-prev');
+
+    for (let i = 0; i < cards.length; i++) {
+        cards[i].addEventListener('click', (e) => {
+            document.querySelector('.modal-container').style.display = 'block';
+            updateModal(data[i]);
+
+            //if card is first in list remove 'prev' button and if card is last in list remove 'next' button
+            if (i === 0) {
+                prevBtn.style.display = 'none';
+            } else{
+                prevBtn.style.display = 'block';
+            }
+           
+            if (i === 11) {
+                nextBtn.style.display = 'none';
+            } else{
+                nextBtn.style.display = 'block';
+            }
+            
+        })
+    }  
+}
+
+
+
+
 
 
 
