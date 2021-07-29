@@ -1,7 +1,6 @@
 const gallery = document.querySelector('#gallery');
-const body = document.querySelector('body');
 
-let currentCard = 0;
+let currentIndex = 0;
 
 // ------------------------------------------
 //  FETCH FUNCTION
@@ -15,11 +14,11 @@ function fetchData(url) {
 
 fetchData('https://randomuser.me/api/?results=12&nat=us')
     .then(data => {
-        const users = data.results;
-        generateProfiles(users);
+        const employees = data.results;
+        generateProfiles(employees);
         generateModal();
-        toggleModal(users);
-        cardsHandler(users);
+        cardHandler(employees);
+        toggleModal(employees);
     });
 
 
@@ -34,7 +33,10 @@ function checkStatus(response){
     }
 }
 
-//Gallery Profiles
+/* 
+    * The generateProfiles function pulls employee data from API and maps through each of the 12 employees info to attach  to the card 
+    * that is then added to the gallery. This shows the 12 employees on the web page.
+*/
 function generateProfiles(data){
     const profiles = data.map(profile => `
     <div class="card">
@@ -50,15 +52,16 @@ function generateProfiles(data){
     `).join('');
     
     gallery.insertAdjacentHTML('beforeend', profiles);
-}
 
+
+}
 
 //Function for modal markup + modal closes if user clicks outside of modal
 function generateModal() {
     const markup =  `
     <div class="modal-container">
             <div class="modal">
-                <button type="button" id="modal-close-btn" class="modal-close-btn"><strong>X</strong></button>
+               
             </div>
             <div class="modal-btn-container">
                 <button type="button" id="modal-prev" class="modal-prev btn">Prev</button>
@@ -68,21 +71,8 @@ function generateModal() {
     gallery.insertAdjacentHTML('afterend', markup);
     
     const modalContainer = document.querySelector('.modal-container');
-    const modalCloseBtn = document.querySelector('#modal-close-btn');
-    
     modalContainer.style.display = 'none';
-    
-    modalCloseBtn.addEventListener('click', () => {
-        modalContainer.style.display = 'none';
-        document.querySelector('.modal-info-container').remove();
-    });
 
-    document.addEventListener('click', (e) => { 
-        if (e.target.className === 'modal-container') {
-        modalContainer.style.display = 'none';
-        document.querySelector('.modal-info-container').remove();
-        }
-    });
 }
 
 //Function to update modal data
@@ -93,6 +83,7 @@ function updateModal(data) {
     modal.innerHTML = '';
    
     const employeeData = `
+        <button type="button" id="modal-close-btn" class="modal-close-btn"><strong>X</strong></button>
         <div class="modal-info-container">
             <img class="modal-img" src="${data.picture.large}" alt="${data.name.first} ${data.name.last}">
             <h3 id="name" class="modal-name cap">${data.name.first} ${data.name.last}</h3>
@@ -106,61 +97,62 @@ function updateModal(data) {
     `;  
     
     modal.insertAdjacentHTML('afterbegin', employeeData);
+
+    
+    const modalCloseBtn = document.querySelector('#modal-close-btn');
+    
+    modalCloseBtn.addEventListener('click', () => {
+        modal.parentElement.style.display = 'none';
+    });
+
+    document.addEventListener('click', (e) => { 
+        if (e.target.className === 'modal-container') {
+            modal.parentElement.style.display = 'none';  
+        }
+    });
+}
+
+function cardHandler(data){
+    //Loop through cards and add click to open employee data modal
+    const cards = document.querySelectorAll('.card');
+
+    cards.forEach((card, index) => {
+        card.addEventListener('click', () => {
+            document.querySelector(".modal-container").style.display = "block";
+            currentIndex = index;
+            updateModal(data[currentIndex]);
+            if(currentIndex <= 0){
+                document.querySelector('#modal-prev').style.display = 'none';
+            }
+            if(currentIndex >= 11){
+                document.querySelector('#modal-next').style.display = 'none';
+                document.querySelector('#modal-prev').style.display = 'block';
+            }
+        });
+    });
 }
 
 function toggleModal(data) {
     const prevBtn = document.querySelector("#modal-prev");
     const nextBtn = document.querySelector("#modal-next");
-    let currentIndex = 0;
    
-    prevBtn.addEventListener("click", (e) => {
-      if (currentIndex === 0) {
-        currentIndex = data.length -1;
-   
-      } else {
-        currentIndex--;
-     
-      }
-      updateModal(data[currentIndex]);
-    });
-
-    nextBtn.addEventListener("click", (e) => {
-        if (currentIndex === 11) {
-            currentIndex = data.length - 1;
-        } else {
-          currentIndex++;
-        }
+    nextBtn.addEventListener('click', (e) => {
+        prevBtn.style.display = 'block';
+        currentIndex++;
         updateModal(data[currentIndex]);
-    });
+        if (currentIndex >= 11) {
+            nextBtn.style.display = 'none';
+        }
+    })
 
-  }
-
-//Function to handle the click on the cards
-function cardsHandler(data) {
-    const cards = document.querySelectorAll('.card');
-    const nextBtn = document.querySelector('#modal-next');
-    const prevBtn = document.querySelector('#modal-prev');
-
-    for (let i = 0; i < cards.length; i++) {
-        cards[i].addEventListener('click', (e) => {
-            document.querySelector('.modal-container').style.display = 'block';
-            updateModal(data[i]);
-
-            //if card is first in list remove 'prev' button and if card is last in list remove 'next' button
-            if (i === 0) {
-                prevBtn.style.display = 'none';
-            } else{
-                prevBtn.style.display = 'block';
-            }
-           
-            if (i === 11) {
-                nextBtn.style.display = 'none';
-            } else{
-                nextBtn.style.display = 'block';
-            }
-            
-        })
-    }  
+    prevBtn.addEventListener('click', (e) => {
+        nextBtn.style.display = '';
+        currentIndex--;
+        updateModal(data[currentIndex]);
+        if (currentIndex <= 0) {
+            prevBtn.style.display = 'none';
+        }
+    })
 }
 
 
