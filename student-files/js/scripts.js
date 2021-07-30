@@ -2,9 +2,7 @@ const gallery = document.querySelector('#gallery');
 
 let currentIndex = 0;
 
-// ------------------------------------------
-//  FETCH FUNCTION
-// ------------------------------------------
+//Resuable data fetch function that checks the returned promise status, parses and returns json and handles a catch method
 function fetchData(url) {
     return fetch(url)
         .then(checkStatus)
@@ -12,6 +10,11 @@ function fetchData(url) {
         .catch(error => console.log('Looks like there was a problem', error));
 }
 
+/* 
+    * Fetch request to api(url) using the fetchData function, pulling back data for 12 users
+    * Chain a then method to call the functions to generate profiles, generate the modal, handle the click event on the cards 
+    * and toggle to modals using the pagination buttons
+*/
 fetchData('https://randomuser.me/api/?results=12&nat=us')
     .then(data => {
         const employees = data.results;
@@ -22,9 +25,7 @@ fetchData('https://randomuser.me/api/?results=12&nat=us')
     });
 
 
-// ------------------------------------------
-//  HELPER FUNCTIONS
-// ------------------------------------------   
+//Check if the returned promise status was set to true, if not activate the catch method in fetchData
 function checkStatus(response){
     if(response.ok){
         return Promise.resolve(response);
@@ -33,9 +34,23 @@ function checkStatus(response){
     }
 }
 
+
+/*
+   Dynamically adds search bar at the top of the page
+*/
+const searchContainer = document.querySelector('.search-container');
+
+const searchBar = `<form action="#" method="get">
+<input type="search" id="search-input" class="search-input" placeholder="Search...">
+<input type="submit" value="&#x1F50D;" id="search-submit" class="search-submit">
+</form>`;
+
+searchContainer.insertAdjacentHTML('beforeend', searchBar);
+
+
 /* 
-    * The generateProfiles function pulls employee data from API and maps through each of the 12 employees info to attach  to the card 
-    * that is then added to the gallery. This shows the 12 employees on the web page.
+    * Pulls employee data from API and maps through each of the 12 employees info, attaches them to the card, 
+    * then inserts them into the gallery.
 */
 function generateProfiles(data){
     const profiles = data.map(profile => `
@@ -56,7 +71,7 @@ function generateProfiles(data){
 
 }
 
-//Function for modal markup + modal closes if user clicks outside of modal
+//Modal markup set to display none until activated by cardsHandler function
 function generateModal() {
     const markup =  `
     <div class="modal-container">
@@ -75,7 +90,7 @@ function generateModal() {
 
 }
 
-//Function to update modal data
+
 function updateModal(data) {
     const dob = new Date(data.dob.date);
     const [month, day, year] = [dob.getMonth()+1, dob.getDate(), dob.getFullYear()];
@@ -98,7 +113,7 @@ function updateModal(data) {
     
     modal.insertAdjacentHTML('afterbegin', employeeData);
 
-    
+    //closes the modal if the close button is clicked or user clicks outside of the modal
     const modalCloseBtn = document.querySelector('#modal-close-btn');
     
     modalCloseBtn.addEventListener('click', () => {
@@ -112,8 +127,9 @@ function updateModal(data) {
     });
 }
 
+
+//Loop through cards and add click to open employee data modal, on load if modal is first or last item in list show relevant pagination
 function cardHandler(data){
-    //Loop through cards and add click to open employee data modal
     const cards = document.querySelectorAll('.card');
 
     cards.forEach((card, index) => {
@@ -132,6 +148,7 @@ function cardHandler(data){
     });
 }
 
+//Show relevant employee data and handle pagination in modals as per data index
 function toggleModal(data) {
     const prevBtn = document.querySelector("#modal-prev");
     const nextBtn = document.querySelector("#modal-next");
@@ -143,7 +160,7 @@ function toggleModal(data) {
         if (currentIndex >= 11) {
             nextBtn.style.display = 'none';
         }
-    })
+    });
 
     prevBtn.addEventListener('click', (e) => {
         nextBtn.style.display = '';
@@ -152,17 +169,38 @@ function toggleModal(data) {
         if (currentIndex <= 0) {
             prevBtn.style.display = 'none';
         }
-    })
+    });
 }
 
 
+/*
+   Search functionality
+*/
+const search = document.querySelector('#search-input');
+const submit = document.querySelector('#search-submit');
 
+function searchList(){
+    const searchInput = search.value.toLowerCase();
+    const cards = document.querySelectorAll(".card");
 
+    cards.forEach(card => {
+        if (!card.querySelector("#name").textContent.toLowerCase().includes(searchInput)) {
+            card.style.display = "none";
+        }
+        else {
+            card.style.display = "";
+        }
+    });
+}
 
+submit.addEventListener("click", (e) => {
+    e.preventDefault();
+    searchList();
+});
 
-
-
-
+search.addEventListener("keyup", () => {
+    searchList();
+});
 
 
 
