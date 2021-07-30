@@ -67,11 +67,10 @@ function generateProfiles(data){
     `).join('');
     
     gallery.insertAdjacentHTML('beforeend', profiles);
-
-
 }
 
-//Modal markup set to display none until activated by cardsHandler function
+
+//Modal markup set to display none until activated by cardsHandler() function
 function generateModal() {
     const markup =  `
     <div class="modal-container">
@@ -105,7 +104,7 @@ function formatPhoneNumber(phoneNumberString) {
 
 
 function updateModal(data) {
-    //format date as MM/DD/YYYY
+    //format dob to MM/DD/YYYY by passing the data string to a date object and then create an array parsing the data into month, day and year methods
     const dob = new Date(data.dob.date);
     const [month, day, year] = [dob.getMonth()+1, dob.getDate(), dob.getFullYear()];
 
@@ -163,6 +162,7 @@ function cardHandler(data){
     });
 }
 
+
 //Show relevant employee data and handle pagination in modals as per data index
 function toggleModal(data) {
     const prevBtn = document.querySelector("#modal-prev");
@@ -188,9 +188,7 @@ function toggleModal(data) {
 }
 
 
-/*
-   Search functionality
-*/
+//Search functionality takes the data entered into the search input field and loops through the 'cards' to compares the search input to the name field
 const search = document.querySelector('#search-input');
 const submit = document.querySelector('#search-submit');
 
