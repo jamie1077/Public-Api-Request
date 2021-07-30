@@ -35,9 +35,7 @@ function checkStatus(response){
 }
 
 
-/*
-   Dynamically adds search bar at the top of the page
-*/
+//Dynamically adds search bar at the top of the page
 const searchContainer = document.querySelector('.search-container');
 
 const searchBar = `<form action="#" method="get">
@@ -188,7 +186,7 @@ function toggleModal(data) {
 }
 
 
-//Search functionality takes the data entered into the search input field and loops through the 'cards' to compares the search input to the name field
+//Search functionality comparing user search input to the employee name in the cards
 const search = document.querySelector('#search-input');
 const submit = document.querySelector('#search-submit');
 
