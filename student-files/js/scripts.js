@@ -15,7 +15,7 @@ function fetchData(url) {
     * Chain a then method to call the functions to generate profiles, generate the modal, handle the click event on the cards 
     * and toggle to modals using the pagination buttons
 */
-fetchData('https://randomuser.me/api/?results=12&nat=us')
+fetchData('https://randomuser.me/api/?results=12&nat=us,gb')
     .then(data => {
         const employees = data.results;
         generateProfiles(employees);
@@ -42,7 +42,7 @@ const searchContainer = document.querySelector('.search-container');
 
 const searchBar = `<form action="#" method="get">
 <input type="search" id="search-input" class="search-input" placeholder="Search...">
-<input type="submit" value="&#x1F50D;" id="search-submit" class="search-submit">
+<input type="submit" value="&#x1F50E;&#xFE0E;" id="search-submit" class="search-submit">
 </form>`;
 
 searchContainer.insertAdjacentHTML('beforeend', searchBar);
@@ -90,10 +90,25 @@ function generateModal() {
 
 }
 
+/*
+    * format the phone number to (XXX) XXX-XXXX for both us and gb phone numbers to use in updateModal() function
+    * references from https://stackoverflow.com/questions/8358084/regular-expression-to-reformat-a-us-phone-number-in-javascript
+*/
+function formatPhoneNumber(phoneNumberString) {
+    const cleaned = ('' + phoneNumberString).replace(/\D/g, '');
+    const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+    if (match) {
+        return '(' + match[1] + ') ' + match[2] + '-' + match[3];
+    }
+    return null;
+}
+
 
 function updateModal(data) {
+    //format date as MM/DD/YYYY
     const dob = new Date(data.dob.date);
     const [month, day, year] = [dob.getMonth()+1, dob.getDate(), dob.getFullYear()];
+
     const modal = document.querySelector('.modal');
     modal.innerHTML = '';
    
@@ -105,7 +120,7 @@ function updateModal(data) {
             <p class="modal-text">${data.email}</p>
             <p class="modal-text cap">${data.location.city}</p>
             <hr>
-            <p class="modal-text">${data.phone}</p>
+            <p class="modal-text">${formatPhoneNumber(data.cell)}</p>
             <p class="modal-text">${data.location.state}, ${data.location.city}, ${data.location.country} ${data.location.postcode}</p>
             <p class="modal-text">Birthday: ${[month]}/${[day]}/${[year]}</p>
         </div>
